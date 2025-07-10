@@ -48,6 +48,7 @@ let isPlaying = false;
 let userInitiatedPlayback = false; // Track if user has initiated playback
 let currentViewMode = 'all'; // 'all' or 'playlist'
 let currentPlaylistName = ''; // Currently active playlist
+let currentPlaylistSongs = []; // Array to store currently active songs
 
 // Playlist data structures
 let playlists = {
@@ -88,7 +89,7 @@ toggleBtn.addEventListener("click", () => {
         document.querySelectorAll(".all_songs, .song_card, .playlist").forEach(element => {
             element.style.backgroundColor = "rgba(107, 184, 222, 0.7)";
         });
-        document.querySelectorAll(".song, .lists").forEach(element => {
+        document.querySelectorAll(".song, .lists, .empty-playlist").forEach(element => {
             element.style.backgroundColor = "rgba(11, 129, 188, 0.7)";
             element.style.color = "#fff";
         });
@@ -97,7 +98,7 @@ toggleBtn.addEventListener("click", () => {
         document.querySelectorAll(".all_songs, .song_card, .playlist").forEach(element => {
             element.style.backgroundColor = "rgba(38, 50, 56, 0.7)";
         });
-        document.querySelectorAll(".song, .lists").forEach(element => {
+        document.querySelectorAll(".song, .lists, .empty-playlist").forEach(element => {
             element.style.backgroundColor = "rgba(31, 31, 31, 0.7)";
             element.style.color = "#fff";
         });
@@ -268,6 +269,9 @@ const songs = [
 // Initialize the player with the first song
 function initializePlayer() {
     if (songs.length > 0) {
+        // Set current playlist songs to all songs initially
+        currentPlaylistSongs = [...songs];
+        
         const firstSong = songs[0];
         songName.textContent = firstSong.name;
         artistName.textContent = firstSong.artist;
@@ -282,12 +286,18 @@ function initializePlayer() {
         
         // Reset progress bar
         progressBar.style.width = '0%';
+        
+        console.log("Player initialized with all songs. Total songs:", currentPlaylistSongs.length);
     }
 }
 
 // Function to render all songs initially
 function renderAllSongs() {
     songCollection.innerHTML = '';
+    
+    // Set current playlist songs to all songs
+    currentPlaylistSongs = [...songs];
+    
     songs.forEach(song => {
         const songElement = document.createElement("li");
         songElement.className = "song";
@@ -301,6 +311,11 @@ function renderAllSongs() {
     currentViewMode = 'all';
     currentPlaylistName = '';
     document.querySelector('.txt').textContent = 'All Songs';
+    
+    // Reset current index
+    currentIndex = 0;
+    
+    console.log("Rendered all songs. Total songs:", currentPlaylistSongs.length);
 }
 
 // Function to filter songs by genre
@@ -309,6 +324,9 @@ function filterSongsByGenre(genre) {
     const filteredSongs = genre === 'All' 
         ? songs 
         : songs.filter(song => song.genre === genre);
+    
+    // Update current playlist songs
+    currentPlaylistSongs = [...filteredSongs];
     
     filteredSongs.forEach(song => {
         const songElement = document.createElement("li");
@@ -323,6 +341,11 @@ function filterSongsByGenre(genre) {
     currentViewMode = 'genre';
     currentPlaylistName = genre;
     document.querySelector('.txt').textContent = genre === 'All' ? 'All Songs' : `${genre} Songs`;
+    
+    // Reset current index
+    currentIndex = 0;
+    
+    console.log(`Filtered songs by genre: ${genre}. Total songs:`, currentPlaylistSongs.length);
 }
 
 // Attach click events to songs
@@ -332,8 +355,16 @@ function attachSongClickEvents() {
         songElement.addEventListener("click", (e) => {
             const songId = parseInt(e.target.dataset.id) || findSongIdByName(e.target.textContent);
             if (songId) {
+                console.log(`Song clicked: ${e.target.textContent} (ID: ${songId})`);
                 playSongById(songId);
                 userInitiatedPlayback = true; // User has initiated playback
+                
+                // Update current index to match the clicked song
+                const songIndex = currentPlaylistSongs.findIndex(s => s.id === songId);
+                if (songIndex !== -1) {
+                    currentIndex = songIndex;
+                    console.log(`Updated current index to ${currentIndex}`);
+                }
             }
         });
     });
@@ -345,7 +376,7 @@ function findSongIdByName(name) {
     return song ? song.id : null;
 }
 
-// Play song by ID - updated to handle video
+// Play song by ID - updated to handle video and use currentPlaylistSongs
 function playSongById(id) {
     const song = songs.find(s => s.id === id);
     if (song) {
@@ -385,7 +416,16 @@ function playSongById(id) {
             });
         }
         
-        currentIndex = id - 1;
+        // Update current index based on the position in currentPlaylistSongs
+        const songIndex = currentPlaylistSongs.findIndex(s => s.id === id);
+        if (songIndex !== -1) {
+            currentIndex = songIndex;
+            console.log(`Now playing song at index ${currentIndex} in current playlist`);
+        } else {
+            // If song is not in current playlist, add it temporarily
+            console.log(`Song ${id} not found in current playlist, playing anyway`);
+        }
+        
         isPlaying = true;
         playPauseIcon.className = 'fa-solid fa-pause';
     }
@@ -399,19 +439,37 @@ dropSong.addEventListener("change", () => {
 
 // Previous button event listener
 leftBtn.addEventListener("click", () => {
+    if (currentPlaylistSongs.length === 0) {
+        console.log("No songs in current playlist");
+        return;
+    }
+    
     if (currentIndex > 0) {
         currentIndex--;
-        playSongById(currentIndex + 1);
+        const prevSong = currentPlaylistSongs[currentIndex];
+        console.log(`Playing previous song: ${prevSong.name} (ID: ${prevSong.id})`);
+        playSongById(prevSong.id);
         userInitiatedPlayback = true; // User has initiated playback
+    } else {
+        console.log("Already at the first song in the playlist");
     }
 });
 
 // Next button event listener
 rightBtn.addEventListener("click", () => {
-    if (currentIndex < songs.length - 1) {
+    if (currentPlaylistSongs.length === 0) {
+        console.log("No songs in current playlist");
+        return;
+    }
+    
+    if (currentIndex < currentPlaylistSongs.length - 1) {
         currentIndex++;
-        playSongById(currentIndex + 1);
+        const nextSong = currentPlaylistSongs[currentIndex];
+        console.log(`Playing next song: ${nextSong.name} (ID: ${nextSong.id})`);
+        playSongById(nextSong.id);
         userInitiatedPlayback = true; // User has initiated playback
+    } else {
+        console.log("Already at the last song in the playlist");
     }
 });
 
@@ -488,7 +546,24 @@ function removeSongFromPlaylist(songTitle, playlistName) {
         
         // If current playlist is being viewed, update the view
         if (currentViewMode === 'playlist' && currentPlaylistName === playlistName) {
+            // Check if the removed song was currently playing
+            const currentSongTitle = songName.textContent;
+            const wasCurrentSong = (currentSongTitle === songTitle);
+            
+            // Reload the playlist
             loadPlaylist(playlistName);
+            
+            // If the removed song was playing, either play the next song or stop playback
+            if (wasCurrentSong) {
+                if (currentPlaylistSongs.length > 0) {
+                    // Play the first song in the updated playlist
+                    playSongById(currentPlaylistSongs[0].id);
+                } else {
+                    // No songs left, reset player
+                    isPlaying = false;
+                    playPauseIcon.className = 'fa-solid fa-play';
+                }
+            }
         }
         
         return true;
@@ -503,10 +578,26 @@ function loadPlaylist(playlistName) {
     
     songCollection.innerHTML = '';
     
-    const playlistSongs = playlists[playlistName];
-    playlistSongs.forEach(songTitle => {
-        const song = songs.find(s => s.name === songTitle);
-        if (song) {
+    const playlistSongTitles = playlists[playlistName];
+    
+    // Filter songs that are in this playlist
+    const playlistSongs = songs.filter(song => playlistSongTitles.includes(song.name));
+    
+    // Update current playlist songs
+    currentPlaylistSongs = [...playlistSongs];
+    
+    // Handle empty playlist
+    if (playlistSongs.length === 0) {
+        const emptyMessage = document.createElement("li");
+        emptyMessage.className = "empty-playlist";
+        emptyMessage.textContent = "No songs in this playlist";
+        songCollection.appendChild(emptyMessage);
+        
+        // Reset player display but don't change current song
+        console.log("Playlist is empty");
+    } else {
+        // Render playlist songs
+        playlistSongs.forEach(song => {
             const songElement = document.createElement("li");
             songElement.className = "song";
             songElement.textContent = song.name;
@@ -524,8 +615,8 @@ function loadPlaylist(playlistName) {
             
             songElement.appendChild(removeBtn);
             songCollection.appendChild(songElement);
-        }
-    });
+        });
+    }
     
     attachSongClickEvents();
     
@@ -533,6 +624,11 @@ function loadPlaylist(playlistName) {
     currentViewMode = 'playlist';
     currentPlaylistName = playlistName;
     document.querySelector('.txt').textContent = `Playlist: ${playlistName}`;
+    
+    // Reset current index
+    currentIndex = 0;
+    
+    console.log(`Loaded playlist: ${playlistName}. Total songs:`, currentPlaylistSongs.length);
 }
 
 // Switch to viewing a specific playlist
@@ -544,7 +640,34 @@ function switchToPlaylist(playlistName) {
         return;
     }
     
+    // Pause current playback before switching
+    if (isPlaying) {
+        const currentPlayer = isVideoMode ? videoPlayer : audioplay;
+        currentPlayer.pause();
+        isPlaying = false;
+        playPauseIcon.className = 'fa-solid fa-play';
+    }
+    
+    // Load the playlist
     loadPlaylist(playlistName);
+    
+    // If the playlist has songs, prepare the first song but don't play automatically
+    if (currentPlaylistSongs.length > 0) {
+        const firstSong = currentPlaylistSongs[0];
+        songName.textContent = firstSong.name;
+        artistName.textContent = firstSong.artist;
+        artistImage.setAttribute("src", firstSong.image);
+        songPlay.setAttribute("src", firstSong.source);
+        videoSource.setAttribute("src", firstSong.videoSource);
+        
+        // Reset progress bar
+        progressBar.style.width = '0%';
+        
+        // Load media but don't play
+        audioplay.load();
+        videoPlayer.load();
+    }
+    
     console.log(`Successfully switched to playlist: ${playlistName}`);
 }
 
@@ -637,11 +760,19 @@ addToPlaylistBtn.addEventListener("click", function() {
 
 // Audio ended event - play next song
 audioplay.addEventListener('ended', () => {
-    if (currentIndex < songs.length - 1) {
+    if (currentPlaylistSongs.length === 0) {
+        console.log("No songs in current playlist");
+        return;
+    }
+    
+    if (currentIndex < currentPlaylistSongs.length - 1) {
         currentIndex++;
-        playSongById(currentIndex + 1);
+        const nextSong = currentPlaylistSongs[currentIndex];
+        console.log(`Auto-playing next song: ${nextSong.name} (ID: ${nextSong.id})`);
+        playSongById(nextSong.id);
     } else {
         // If it's the last song, reset play button
+        console.log("Reached end of playlist");
         isPlaying = false;
         playPauseIcon.className = 'fa-solid fa-play';
     }
@@ -649,11 +780,19 @@ audioplay.addEventListener('ended', () => {
 
 // Video ended event - play next song
 videoPlayer.addEventListener('ended', () => {
-    if (currentIndex < songs.length - 1) {
+    if (currentPlaylistSongs.length === 0) {
+        console.log("No songs in current playlist");
+        return;
+    }
+    
+    if (currentIndex < currentPlaylistSongs.length - 1) {
         currentIndex++;
-        playSongById(currentIndex + 1);
+        const nextSong = currentPlaylistSongs[currentIndex];
+        console.log(`Auto-playing next song: ${nextSong.name} (ID: ${nextSong.id})`);
+        playSongById(nextSong.id);
     } else {
         // If it's the last song, reset play button
+        console.log("Reached end of playlist");
         isPlaying = false;
         playPauseIcon.className = 'fa-solid fa-play';
     }
