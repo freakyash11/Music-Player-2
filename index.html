@@ -10,60 +10,110 @@
 <body>
     <div class="toggle">
         <input type="checkbox" id="check" class="switch">
-    <label for="check" class="togg-btn"></label>
+        <label for="check" class="togg-btn"></label>
     </div>
+    
     <header>
         <h1 class="heading">Music Player</h1>
     </header>
-    <div class="all_songs">
-        <div class="filter">Filter By Genre :</div>
-        <select id="dropdown">
-            <option value="" disabled selected>Select an option</option>
-            <option value="All">All</option>
-            <option value="Rock">Rock</option>
-            <option value="Pop">Pop</option>
-            <option value="Hip_Hop">Hip Hop</option>
-        </select>
-    </div>
-    <div class="txt">All Songs</div>
-    <ul id="songList"></ul>
-
-    <div class="song_card">
-        <div class="song_box">
-            <div class="song_img"> <img class="artist_image" src="Cover/d548ab1547c2d3415e08865f4ec49f7b.999x999x1.jpg" alt=""></div>
-        </div>
-        <div class="song_name">Shape Of You</div>
-        <div class="artist_name">Ed</div>
-        <audio controls id="audios">
-            <source class="songPlay" src="Songs/It's You.mp3" type="audio/mp3">
-        </audio>
-        <button class="prev"><i class="fa-solid fa-backward icon"></i></button>
-        <button class="next"><i class="fa-solid fa-forward icon" aria-hidden="true"></i></button>
-        <button class="ply">Add to Playlist</div>
-    </div>
-    <div class="inputfiled">
-        <input type="text" placeholder="Enter Playlist Name" class="enterPlayList">
-        <button class="createPlaylist">Create PlayList</button>
-    </div>
     
-    <div class="playlist">
-        <div class="current">
-            <h3 class="play-topic">Current Playlist</h3>
-       <ul class="current list">
-           <li class="lists"> mynewsong</li>
-           <li class="lists">rock song</li>
-       </ul>
-       </div>
-       <div class="allPlay">
-           <h3 class="play-topic"></h3>
-           <ul class="All list">
-               <h3 class="play-topic">All Playlist</h3>
-               <li class="lists"> favourite</li>
-               
-           </ul>
-       </div>
+    <div class="container">
+        <!-- Song List Section -->
+        <div class="all_songs">
+            <div class="filter">Filter By Genre:</div>
+            <select id="dropdown">
+                <option value="" disabled selected>Select an option</option>
+                <option value="All">All</option>
+                <option value="Rock">Rock</option>
+                <option value="Pop">Pop</option>
+                <option value="Hip_Hop">Hip Hop</option>
+            </select>
+            
+            <div class="txt">All Songs</div>
+            <ul id="songList"></ul>
+        </div>
+        
+        <!-- Player Section -->
+        <div class="song_card">
+            <!-- Cover Image Container (for audio mode) -->
+            <div class="song_box audio-mode-element">
+                <div class="song_img">
+                    <img class="artist_image" src="Cover/d548ab1547c2d3415e08865f4ec49f7b.999x999x1.jpg" alt="Album Cover">
+                </div>
+            </div>
+            
+            <!-- Video Container (for video mode) -->
+            <div class="video-container-wrapper video-mode-element">
+                <div class="video_container">
+                    <video id="videoPlayer">
+                        <source src="" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+            
+            <div class="song_details">
+                <div class="song_name">Shape Of You</div>
+                <div class="artist_name">Ed Sheeran</div>
+            </div>
+            
+            <div class="audio_controls">
+                <!-- Audio Player (only for audio mode) -->
+                <div class="audio-player-container audio-mode-element">
+                    <audio id="audios">
+                        <source class="songPlay" src="Songs/It's You.mp3" type="audio/mp3">
+                    </audio>
+                </div>
+                
+                <!-- Custom playback controls (visible in both modes) -->
+                <div class="custom-controls">
+                    <button class="play-pause-btn">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <div class="progress-container">
+                        <div class="progress-bar"></div>
+                    </div>
+                </div>
+                
+                <!-- Control buttons (visible in both modes) -->
+                <div class="controls">
+                    <button class="prev"><i class="fa-solid fa-backward icon"></i></button>
+                    <button class="next"><i class="fa-solid fa-forward icon" aria-hidden="true"></i></button>
+                </div>
+                
+                <button class="ply">Add to Playlist</button>
+                
+                <!-- Mode toggle button -->
+                <div class="mode-toggle">
+                    <button class="mode-switch">Switch to Video</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Playlist Section -->
+        <div class="playlist">
+            <div class="inputfiled">
+                <input type="text" placeholder="Enter Playlist Name" class="enterPlayList">
+                <button class="createPlaylist">Create PlayList</button>
+            </div>
+            
+            <div class="current">
+                <h3 class="play-topic">Current Playlist</h3>
+                <ul class="current list">
+                    <li class="lists">mynewsong</li>
+                    <li class="lists">rock song</li>
+                </ul>
+            </div>
+            
+            <div class="allPlay">
+                <h3 class="play-topic">All Playlists</h3>
+                <ul class="All list">
+                    <li class="lists">favourite</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
